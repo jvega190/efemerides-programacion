@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Calendar, Code, Terminal, Clock } from "lucide-react"
+import { useExitShortcut } from "../hooks/use-exit-shortcut"
+import { useIsMobile } from "../hooks/use-mobile"
 
 const ephemerides = [
   {
@@ -57,7 +59,8 @@ export default function ProgrammingEphemeris() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [displayText, setDisplayText] = useState("")
   const [isTyping, setIsTyping] = useState(true)
-  const [osKeyCombo, setOsKeyCombo] = useState<string>("")
+  const osKeyCombo = useExitShortcut()
+  const isMobile = useIsMobile()
 
   // Obtener efeméride del día (simulado con el día actual)
   const today = new Date()
@@ -89,28 +92,6 @@ export default function ProgrammingEphemeris() {
 
     setTimeout(typeWriter, 1000)
   }, [todayEphemeris])
-
-  useEffect(() => {
-    // Detectar sistema operativo y definir combinación
-    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
-    setOsKeyCombo(isMac ? '⌘ + W' : 'Ctrl + W')
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        (isMac && e.metaKey && e.key.toLowerCase() === 'w') ||
-        (!isMac && e.ctrlKey && e.key.toLowerCase() === 'w')
-      ) {
-        e.preventDefault()
-        window.close()
-      }
-      // Ctrl+C solo muestra mensaje, no puede cerrar pestaña
-      if ((isMac && e.metaKey && e.key.toLowerCase() === 'c') || (!isMac && e.ctrlKey && e.key.toLowerCase() === 'c')) {
-        alert('Para salir, usa ' + (isMac ? '⌘ + W' : 'Ctrl + W'))
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
@@ -209,9 +190,11 @@ export default function ProgrammingEphemeris() {
                     <p className="text-green-400/60 font-mono text-sm">
                       Una nueva efeméride cada día • Presiona F5 para actualizar
                     </p>
-                    <p className="text-green-400/60 font-mono text-xs mt-2">
-                      Presiona <span className="font-bold">{osKeyCombo}</span> para salir
-                    </p>
+                    {!isMobile && (
+                      <p className="text-green-400/60 font-mono text-xs mt-2">
+                        Presiona <span className="font-bold">{osKeyCombo}</span> para salir
+                      </p>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
